@@ -132,6 +132,9 @@ header b.who2{display:block;font-size:24px;font-weight:800;letter-spacing:-.02em
 @media(max-width:640px){header b.who2{font-size:22px}}
 body.out{background:#2A554E}.llogo{display:block;width:min(400px,86vw);height:auto;margin:5vh auto 0}.login.card{margin-top:0!important;padding:22px}body.out .m{color:#6b7774}
 @media(max-width:640px){.llogo{width:82vw;margin-top:3vh}}
+.paywrap{overflow-x:auto}.pay{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}.pay th,.pay td{padding:9px 6px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}.pay th{color:var(--m);font-size:12px;font-weight:600}.pay .l{text-align:left}.pay tr.sum td{border-bottom:0;font-size:15px;background:#f3f6f4}.pay td b{font-size:15px}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.pgrid>div{background:#f3f6f4;border-radius:14px;padding:12px}.pgrid small{display:block;color:var(--m);font-size:12px}.pgrid b{display:block;font-size:22px;letter-spacing:-.02em;margin:2px 0}.pgrid em{font-style:normal;font-size:11px;color:var(--g)}
+@media(max-width:640px){.pay th,.pay td{padding:8px 4px;font-size:12px}.pgrid b{font-size:19px}}
 </style></head><body><div id="app"></div><dialog id="dlg"></dialog>
 <script>
 const $=s=>document.querySelector(s),KEY='bb_v2';
@@ -166,7 +169,7 @@ function status(t,bad){let el=document.getElementById('sync');if(!el){el=documen
 function pubDoc(){const pw=Object.keys(D.schedules).filter(w=>D.schedules[w].status==='published'),days=new Set(pw.flatMap(w=>weekDays(w)));
  return{employees:D.employees.map(e=>({id:e.id,name:e.name,phone:e.phone,color:e.color,role:e.role,active:e.active,wage:0})),settings:D.store.settings,schedules:Object.fromEntries(pw.map(w=>[w,D.schedules[w]])),assignments:D.assignments.filter(a=>days.has(a.date))}}
 function mainDoc(){return{employees:D.employees.map(e=>({...e,pin:''})),settings:D.store.settings,schedules:D.schedules,assignments:D.assignments,audit:D.audit,logs:D.logs}}
-async function pushOwner(){status('저장 중…');try{await up('app_state',{key:'main',value:mainDoc(),updated_at:new Date().toISOString()});await up('app_state',{key:'public',value:pubDoc(),updated_at:new Date().toISOString()});status('저장됨');setTimeout(()=>status(''),1500)}catch(e){status('저장 실패 – 연결 확인',true)}}
+async function pushOwner(){status('저장 중…');try{await up('app_state',{key:'main',value:mainDoc(),updated_at:new Date().toISOString()});await up('app_state',{key:'public',value:pubDoc(),updated_at:new Date().toISOString()});await up('pay',D.employees.filter(e=>e.role!=='owner').map(e=>({emp:e.phone,wage:e.wage||0})));status('저장됨');setTimeout(()=>status(''),1500)}catch(e){status('저장 실패 – 연결 확인',true)}}
 function save(){if(!sess||!isOwner())return;clearTimeout(saveT);saveT=setTimeout(pushOwner,400)}
 async function pushAvail(w){const a=D.avail[w]&&D.avail[w][me.id];if(!a)return;try{await up('avail',{emp:loginId,week:w,data:a,updated_at:new Date().toISOString()})}catch(e){alert('제출 저장에 실패했습니다. 연결을 확인하고 다시 눌러 주세요.')}}
 function applyAvail(rows){const idOf={};D.employees.forEach(e=>idOf[e.phone]=e.id);D.avail={};rows.forEach(r=>{const id=idOf[r.emp];if(!id)return;(D.avail[r.week]=D.avail[r.week]||{})[id]=r.data})}
@@ -176,6 +179,7 @@ async function loadRemote(){
   const rows=await sbf('avail?select=emp,week,data');applyAvail(rows);return !(m&&m.length)}
  const p=await sbf('app_state?key=eq.public&select=value');if(!p||!p.length)throw new Error('empty');const v=p[0].value;
  D.employees=v.employees;D.store.settings=Object.assign(D.store.settings,v.settings);D.schedules=v.schedules||{};D.assignments=v.assignments||[];
+ try{const pr=await sbf('pay?select=emp,wage');pr.forEach(r=>{const e=D.employees.find(x=>x.phone===r.emp);if(e)e.wage=r.wage})}catch(e){}
  const rows=await sbf('avail?select=emp,week,data');applyAvail(rows);return false}
 async function enter(){const first=await loadRemote();me=D.employees.find(x=>x.phone===loginId);if(!me)throw new Error('no emp');tab=me.role==='owner'?'board':'av';if(first&&me.role==='owner')await pushOwner();av=null;render()}
 function doLogin(){const id=$('#ph').value.trim().toLowerCase();login(id,id==='admin'?$('#pn').value:'1234')}
@@ -325,6 +329,16 @@ function stripH(d,o,c){let s='<div class="st2">';for(let m=o;m<c;m+=30){const n=
 function calView(w,edit){if(!edit&&sched(w).status!=='published')return'<p class="m">아직 발행된 일정이 없습니다.</p>';
  if(dayOpen&&!weekDays(w).includes(dayOpen))dayOpen=null;return dayOpen?dayD(w,edit):(wkTable?calAB(w,edit):calVert(w,edit))}
 let wkTable=false;
+const won=n=>Math.round(n).toLocaleString()+'원';
+function payWeek(id,w){const e=emp(id),hrs=D.assignments.filter(a=>a.emp===id&&weekDays(w).includes(a.date)).reduce((s,a)=>s+hours(a),0),wage=e?e.wage||0:0,base=hrs*wage,holi=hrs>=15?Math.min(hrs,40)/40*8*wage:0;return{hrs,wage,base,holi,total:base+holi}}
+function payMonth(id,ym){const e=emp(id),wage=e?e.wage||0:0,days=D.assignments.filter(a=>a.emp===id&&a.date.startsWith(ym));const hrs=days.reduce((s,a)=>s+hours(a),0);const weeks=[...new Set(days.map(a=>monday(a.date)))];let holi=0;weeks.forEach(w=>{holi+=payWeek(id,w).holi});return{hrs,base:hrs*wage,holi,total:hrs*wage+holi}}
+const WNOTE='세전 금액입니다. 휴게시간 공제는 반영하지 않았고, 주 15시간 이상이면 주휴수당(주 근무시간 ÷ 40 × 8시간 × 시급)을 더했습니다.';
+function payOwner(w){const list=D.employees.filter(e=>e.active&&e.role!=='owner');let T=0,H=0;
+ const rows=list.map(e=>{const p=payWeek(e.id,w);T+=p.total;H+=p.hrs;return'<tr><td class="l"><i class="ini" style="background:'+e.color+'">'+iniOf(e)+'</i>'+e.name+'</td><td>'+p.hrs+'h</td><td>'+(e.wage||0).toLocaleString()+'</td><td>'+won(p.base)+'</td><td>'+(p.holi?won(p.holi):'-')+'</td><td><b>'+won(p.total)+'</b></td></tr>'}).join('');
+ return'<div class="card" style="margin-top:14px"><h2>이번 주 예상 급여</h2><p class="m">'+fmtD(w)+' ~ '+fmtD(addD(w,6))+' · 초안 포함 전체 배정 기준</p><div class="paywrap"><table class="pay"><tr><th class="l">이름</th><th>시간</th><th>시급</th><th>기본급</th><th>주휴</th><th>합계</th></tr>'+rows+'<tr class="sum"><td class="l">합계</td><td>'+H+'h</td><td></td><td></td><td></td><td><b>'+won(T)+'</b></td></tr></table></div><p class="m" style="margin-top:8px">'+WNOTE+'</p></div>'}
+function payStaff(w){const id=me.id,p=payWeek(id,w),ym=w.slice(0,7),mm=payMonth(id,ym),mon=+ym.slice(5);
+ if(!(me.wage>0))return'';return'<div class="card" style="margin-top:14px"><h2>내 예상 급여</h2><div class="pgrid"><div><small>이 주 ('+p.hrs+'시간)</small><b>'+won(p.total)+'</b>'+(p.holi?'<em>주휴수당 '+won(p.holi)+' 포함</em>':'')+'</div><div><small>'+mon+'월 누적 ('+mm.hrs+'시간)</small><b>'+won(mm.total)+'</b>'+(mm.holi?'<em>주휴수당 '+won(mm.holi)+' 포함</em>':'')+'</div></div><p class="m" style="margin-top:8px">시급 '+me.wage.toLocaleString()+'원 · 발행된 일정 기준 예상액입니다. '+WNOTE+'</p></div>'}
+
 const iniOf=e=>{const l=D.employees.filter(x=>x.active&&x.role!=='owner');return l.filter(x=>x.name[0]===e.name[0]).length>1?e.name[1]||e.name[0]:e.name[0]};
 function vcol(ev,d){const r=ev.currentTarget.getBoundingClientRect(),S=D.store.settings,o=tm(S.open),c=tm(S.close),m=Math.min(c-60,o+Math.floor((ev.clientY-r.top)/r.height*(c-o)/30)*30),e=Math.min(c,m+240),T=x=>pad(x/60|0)+':'+pad(x%60);
  const i=Math.min(5,Math.max(0,Math.floor((ev.clientX-r.left-14)/((r.width-17)/6)))),emps=D.employees.filter(x=>x.active&&x.role!=='owner');pick(d,emps[i]?emps[i].id:null,T(m),T(e))}
@@ -436,11 +450,11 @@ function view(){
  if(own&&tab==='dash')return dash2();
  if(own&&tab==='board'){const st=sched(week).status;return weekHeader()+`<div class="card"><div class="row"><h2>스케줄 보드 <span class="tag ${st==='published'?'tg':'to'}">${st==='published'?'발행됨':'초안'}</span></h2>
   ${st==='published'?`<button class="s sm" onclick="sched(week).status='draft';save();render()">발행 취소</button>`:`<button onclick="publish()">확정·발행</button>`}</div>
-  <p class="m">사람×요일 칸을 누르면 시간을 정합니다. 발행해야 알바에게 보입니다.</p><div class="row" style="gap:8px;margin-bottom:8px;justify-content:flex-start"><button onclick="genAI()">AI 초안 추천</button><button class="s" onclick="copyPrev()">지난주 복사</button><button class="s" onclick="undoLast()">↶ 되돌리기</button></div>${calView(week,true)}</div>`}
+  <p class="m">사람×요일 칸을 누르면 시간을 정합니다. 발행해야 알바에게 보입니다.</p><div class="row" style="gap:8px;margin-bottom:8px;justify-content:flex-start"><button onclick="genAI()">AI 초안 추천</button><button class="s" onclick="copyPrev()">지난주 복사</button><button class="s" onclick="undoLast()">↶ 되돌리기</button></div>${calView(week,true)}</div>${payOwner(week)}`}
  if(own&&tab==='att')return att();
  if(own&&tab==='staff')return staffTab();
  if(tab==='home')return home();
- if(tab==='week')return weekHeader()+`<div class="card"><h2>주간 일정</h2>${calView(week,own)}</div>`;
+ if(tab==='week')return weekHeader()+`<div class="card"><h2>주간 일정</h2>${own?'':payStaff(week)}${calView(week,own)}</div>`;
  if(tab==='rec')return rec();
  if(tab==='av')return availView();
 }
