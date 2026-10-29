@@ -106,6 +106,28 @@ dialog{border:0;border-radius:24px 24px 0 0;padding:20px 18px calc(18px + env(sa
 .ini{display:inline-flex;width:20px;height:20px;border-radius:6px;color:#fff;font-style:normal;font-weight:800;font-size:12px;align-items:center;justify-content:center;margin-right:5px;vertical-align:middle}.lgb.on .ini{background:#fff!important}
 main{max-width:1100px}.bv{min-width:14px}
 #sync{position:fixed;top:12px;right:12px;background:#2A554E;color:#fff;font-size:13px;padding:6px 12px;border-radius:99px;z-index:20;transition:opacity .3s;opacity:0}#sync.bad{background:#c0392b}
+
+@media(max-width:640px){
+ main{padding:10px 8px}.card{padding:12px;border-radius:16px}h2{font-size:18px}
+ button{padding:0 12px;font-size:14px;white-space:nowrap}button.sm{padding:0 10px;font-size:13px}
+ .row{flex-wrap:wrap}
+ .vwrap{padding:8px 2px;overflow-x:visible}.vh,.vb{min-width:0}.vh>.gu0,.vb .gu{width:26px}.vb .gu span{font-size:10px;right:3px}
+ .vh b{font-size:15px}.vh .td b{width:26px;height:26px;line-height:26px}.vh small{font-size:11px}
+ .cvv{width:5px;left:2px}.ls{left:9px;right:2px;gap:2px}.bv{border-radius:5px;min-width:0}.bv b{font-size:11px;padding-top:2px}
+ .lgb{min-height:36px;padding:0 8px;font-size:13px}.legend{gap:5px}
+ .dwrap{padding:8px 4px}.drow{min-width:0}.dl{width:50px;font-size:12px}.db{font-size:12px}
+ .lg2{font-size:11px;gap:8px}
+ .dayrow button{font-size:12px;min-height:44px}.who{grid-template-columns:1fr 1fr}
+ .ab{min-width:0}.abw{padding:4px}.ab th.nm{width:44px;font-size:12px}.chip2{min-height:46px;font-size:11px}.chip2 b{font-size:14px}
+ .stp button{width:44px}dialog{max-height:94vh;overflow:auto}
+ header{padding:10px 12px}
+ nav button{font-size:12px}
+ .login.card{margin-top:8vh}
+ .bv.ai{outline:none}
+ dialog .row>div[style*="flex:1"]{flex:1 1 100%!important}
+ .avd .row{flex-wrap:nowrap}.avd select{min-width:0;padding:0 8px}.avd .seg button{padding:0 11px}
+ .stp select{min-width:0}
+}
 </style></head><body><div id="app"></div><dialog id="dlg"></dialog>
 <script>
 const $=s=>document.querySelector(s),KEY='bb_v2';
@@ -227,7 +249,7 @@ function copyPrev(){if(!confirm('지난주 근무표를 이번 주로 복사할�
  D.assignments.filter(a=>weekDays(addD(week,-7)).includes(a.date)).forEach(a=>{const d=addD(a.date,7);D.assignments.push({...a,id:'a'+Math.random(),date:d,start:toUTC(d,a.s),end:toUTC(d,a.e)})});save();render()}
 const hours=a=>(tm(a.e)-tm(a.s))/60;
 let av=null;const nextW=()=>addD(monday(ymd(new Date())),7);
-function avInit(){const w=nextW(),cur=D.avail[w]&&D.avail[w][me.id];av=cur?JSON.parse(JSON.stringify(cur)):{days:{}};weekDays(w).forEach(d=>{if(!av.days[d])av.days[d]={st:'a',s:'08:00',e:'22:00'}})}
+function avInit(){const w=nextW(),cur=D.avail[w]&&D.avail[w][me.id];av=cur?JSON.parse(JSON.stringify(cur)):{days:{}};weekDays(w).forEach(d=>{if(!av.days[d])av.days[d]={st:'a',s:'10:00',e:'22:30'}})}
 function avSet(d,k,v){av.days[d][k]=v;render()}
 function avAll(st){Object.values(av.days).forEach(x=>x.st=st);render()}
 function avPrev(){const p=D.avail[addD(nextW(),-7)]&&D.avail[addD(nextW(),-7)][me.id];if(!p)return alert('지난주 제출 내용이 없습니다');const ds=weekDays(nextW());Object.values(p.days).forEach((x,i)=>{av.days[ds[i]]={...x}});render()}
@@ -308,7 +330,9 @@ function calVert(w,edit){const S=D.store.settings,o=tm(S.open),c=tm(S.close),day
  let hd='<div class="vh"><div class="gu0"></div>'+days.map(d=>'<div class="'+(isWE(d)?'we ':'')+(d===td?'td':'')+'" onclick="dayOpen=\''+d+'\';render()"><small>'+DOW[new Date(d+'T00:00:00Z').getUTCDay()]+'</small><b>'+ +d.slice(8)+'</b>'+(edit&&gl.some(g=>g.startsWith(fmtD(d)))?'<i class="rd2"></i>':'')+'</div>').join('')+'</div>';
  let bd='<div class="vb" style="height:'+HT+'px"><div class="gu">'+hrs.map(v=>'<span style="top:'+y(v*60)+'%">'+v+'</span>').join('')+'</div>';
  days.forEach(d=>{let cv='';for(let m=o;m<c;m+=30){const n=needAt(d,m),k=cntAt(d,m);cv+='<i class="'+(n===0?'zz':k<n?'lo':'ok')+'"></i>'}
-  const ls=emps.map(e=>{const dim=hl&&hl!==e.id;let av='';if(edit&&hl===e.id){const v=avOf(e.id,d);if(v&&v.st!=='n')av='<div class="vav '+v.st+'" style="top:'+y(Math.max(o,tm(v.s)))+'%;height:'+(y(Math.min(c,tm(v.e)))-y(Math.max(o,tm(v.s))))+'%"></div>';else if(v)av='<div class="vav n"></div>'}
+  const packed=innerWidth<640;const mk=(a,e,l,n)=>{const dim=hl&&hl!==e.id;return'<div class="bv '+(a.source==='ai'?'ai':'')+'" style="top:'+y(tm(a.s))+'%;height:'+(y(tm(a.e))-y(tm(a.s)))+'%;background:'+e.color+';'+(packed?'left:'+(l*100/n)+'%;width:calc('+(100/n)+'% - 2px);right:auto;':'')+(dim?'opacity:.25':'')+'"'+(edit?' onclick="event.stopPropagation();pick(\''+d+'\',\''+a.emp+'\')"':'')+'><b>'+iniOf(e)+'</b></div>'};
+  const lsP=packed?layout(D.assignments.filter(a=>a.date===d)).map(x=>mk(x.a,emp(x.a.emp),x.l,x.n)).join(''):'';
+  const ls=packed?'<div class="lv" style="flex:1">'+(edit&&hl?(()=>{const v=avOf(hl,d);return v&&v.st!=='n'?'<div class="vav '+v.st+'" style="top:'+y(Math.max(o,tm(v.s)))+'%;height:'+(y(Math.min(c,tm(v.e)))-y(Math.max(o,tm(v.s))))+'%"></div>':(v?'<div class="vav n"></div>':'')})():'')+lsP+'</div>':emps.map(e=>{const dim=hl&&hl!==e.id;let av='';if(edit&&hl===e.id){const v=avOf(e.id,d);if(v&&v.st!=='n')av='<div class="vav '+v.st+'" style="top:'+y(Math.max(o,tm(v.s)))+'%;height:'+(y(Math.min(c,tm(v.e)))-y(Math.max(o,tm(v.s))))+'%"></div>';else if(v)av='<div class="vav n"></div>'}
    return'<div class="lv">'+av+slotsOf(d,e.id).map(a=>'<div class="bv '+(a.source==='ai'?'ai':'')+'" style="top:'+y(tm(a.s))+'%;height:'+(y(tm(a.e))-y(tm(a.s)))+'%;background:'+e.color+';'+(dim?'opacity:.25':'')+'"'+(edit?' onclick="event.stopPropagation();pick(\''+d+'\',\''+e.id+'\')"':'')+'><b>'+iniOf(e)+'</b></div>').join('')+'</div>'}).join('');
   bd+='<div class="vc '+(d===td?'tdc':'')+'" '+(edit?'onclick="vcol(event,\''+d+'\')"':'')+'>'+hrs.map(v=>'<div class="hl" style="top:'+y(v*60)+'%"></div>').join('')+'<div class="cvv">'+cv+'</div><div class="ls">'+ls+'</div></div>'});
  bd+='</div>';
