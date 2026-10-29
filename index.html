@@ -281,19 +281,21 @@ function genAI(){const w=week,days=weekDays(w),S=D.store.settings;
  if(!subs.length)return alert('이 주에 가능일을 제출한 사람이 없습니다.');
  if(D.assignments.some(a=>days.includes(a.date))&&!confirm('이 주의 기존 배정이 AI 초안으로 대체됩니다. 계속할까요?'))return;
  snap();D.assignments=D.assignments.filter(a=>!days.includes(a.date));
+ const prevW=[1,2,3].map(k=>addD(w,-7*k)).filter(pw=>D.assignments.some(a=>weekDays(pw).includes(a.date)));
+ const hist={};prevW.forEach(pw=>D.assignments.filter(a=>weekDays(pw).includes(a.date)).forEach(a=>{const dw=new Date(a.date+'T00:00:00Z').getUTCDay(),k=a.emp+'|'+dw,H=hist[k]=hist[k]||{};for(let u=tm(a.s)/30;u<tm(a.e)/30;u++)H[u]=(H[u]||0)+1}));
  const o=tm(S.open)/30,c=tm(S.close)/30,weekly={};subs.forEach(e=>weekly[e.id]=0);const T=u=>pad(u/2|0)+':'+(u%2?'30':'00');
- days.forEach(d=>{const cov={},nd={};for(let u=o;u<c;u++){cov[u]=0;nd[u]=needAt(d,u*30)}const used={};subs.forEach(e=>used[e.id]=[]);
+ days.forEach(d=>{const cov={},nd={},dw=new Date(d+'T00:00:00Z').getUTCDay();for(let u=o;u<c;u++){cov[u]=0;nd[u]=needAt(d,u*30)}const used={};subs.forEach(e=>used[e.id]=[]);
   for(;;){let best=null;
    subs.forEach(e=>{if(used[e.id].length>=2)return;const a=avOf(e.id,d);if(!a||a.st==='n')return;
     const lo=Math.max(o,Math.ceil(tm(a.s)/30)),hi=Math.min(c,Math.floor(tm(a.e)/30)),dh=used[e.id].reduce((q,r)=>q+r[1]-r[0],0),L=Math.min(S.maxDay*2-dh,(S.maxWeek-weekly[e.id])*2);if(hi-lo<1||L<1)return;
-    for(let s=lo;s<hi;s++)for(let t=s+1;t<=Math.min(hi,s+L);t++){if(used[e.id].some(r=>s<r[1]+2&&r[0]<t+2))continue;let g=0;for(let x=s;x<t;x++)if(cov[x]<nd[x])g++;if(!g)continue;
-     const sc=g*50-(t-s-g)*60+(a.st==='p'?15:0)-weekly[e.id]*2-(used[e.id].length?10:0);if(!best||sc>best.sc)best={sc,e,s,t}}});
+    const HH=hist[e.id+'|'+dw]||{};for(let s=lo;s<hi;s++){if(nd[s]===0)continue;for(let t=s+1;t<=Math.min(hi,s+L);t++){if(nd[t-1]===0)break;if(used[e.id].some(r=>s<r[1]+2&&r[0]<t+2))continue;let g=0,hb=0;for(let x=s;x<t;x++){if(cov[x]<nd[x])g++;hb+=(HH[x]||0)*12}if(!g)continue;
+     const sc=g*50-(t-s-g)*60+(a.st==='p'?15:0)-weekly[e.id]*2-(used[e.id].length?10:0)+hb;if(!best||sc>best.sc)best={sc,e,s,t}}}});
    if(!best)break;let {e,s,t}=best;const a=avOf(e.id,d),lo=Math.max(o,Math.ceil(tm(a.s)/30)),hi=Math.min(c,Math.floor(tm(a.e)/30));
-   while(t-s<4){const ok=(a2,b2)=>!used[e.id].some(r=>a2<r[1]&&r[0]<b2);if(t<hi&&ok(s,t+1))t++;else if(s>lo&&ok(s-1,t))s--;else break}
+   while(t-s<4){const ok=(a2,b2)=>!used[e.id].some(r=>a2<r[1]&&r[0]<b2);if(t<hi&&nd[t]>0&&ok(s,t+1))t++;else if(s>lo&&nd[s-1]>0&&ok(s-1,t))s--;else break}
    for(let x=s;x<t;x++)cov[x]++;used[e.id].push([s,t]);weekly[e.id]+=(t-s)/2;
    D.assignments.push({id:'a'+Math.random(),emp:e.id,date:d,s:T(s),e:T(t),start:toUTC(d,T(s)),end:toUTC(d,T(t)),source:'ai'})}});
  audit('schedule',w,null,{ai:true},'AI 초안 생성');sched(w).status='draft';save();render();
- alert('AI 초안을 만들었습니다.\n'+subs.map(e=>e.name+' '+weekly[e.id]+'시간').join(', ')+'\n\n부족한 시간대는 달력에 붉게 표시됩니다. 블록이나 빈 곳을 눌러 고쳐 주세요.')}
+ alert('AI 초안을 만들었습니다.'+(prevW.length?'\n지난 '+prevW.length+'주의 근무 패턴을 반영했습니다.':'\n지난 근무 기록이 없어 가능일만 반영했습니다.')+'\n'+subs.map(e=>e.name+' '+weekly[e.id]+'시간').join(', ')+'\n\n부족한 시간대는 달력에 붉게 표시됩니다. 블록이나 빈 곳을 눌러 고쳐 주세요.')}
 function dash2(){const w=nextW(),st=D.employees.filter(e=>e.active&&e.role!=='owner');
  return'<div class="card"><h2>다음 주 가능일 제출 현황</h2><p class="m">'+fmtD(w)+' ~ '+fmtD(addD(w,6))+'</p>'+st.map(e=>{const s=D.avail[w]&&D.avail[w][e.id];const n=s?Object.values(s.days).filter(x=>x.st!=='n').length:0;return'<div class="row" style="padding:8px 0;border-bottom:1px solid #eee"><span><span class="dot" style="background:'+e.color+'"></span>'+e.name+'</span><span>'+(s?'<span class="tag tg">제출 · 가능 '+n+'일</span>':'<span class="tag tr">미제출</span>')+'</span></div>'}).join('')+'<button style="width:100%;margin-top:12px" onclick="week=nextW();tab=\'board\';render()">다음 주 스케줄 만들기</button></div>'}
 let hl=null;const PX=44;
