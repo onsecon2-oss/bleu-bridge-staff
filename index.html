@@ -400,9 +400,9 @@ function dayView(w,edit){const d=curDay(w),S=D.store.settings,o=tm(S.open)/60,c=
 function weekHeader(){return`<div class="row" style="margin-bottom:10px"><button class="s sm" onclick="week=addD(week,-7);render()">◀ 지난주</button><b>${fmtD(week)} ~ ${fmtD(addD(week,6))}</b><button class="s sm" onclick="week=addD(week,7);render()">다음주 ▶</button></div>`}
 function view(){
  if(!me)return`<div class="login card"><div class="logo">BLEU<br>BRIDGE</div><p class="m" style="text-align:center">알바 관리 · 여수시 소호1길 50</p>
- <label>아이디</label><input id="ph" autocapitalize="none" autocomplete="username"><label>비밀번호</label><input id="pn" type="password" autocomplete="current-password">
- <button style="width:100%;margin-top:16px" onclick="login($('#ph').value,$('#pn').value)">로그인</button>
- <p class="m">사장님: admin / 1234<br>알바: a(봉식) b(송희) c(은숙) d(희영) e(희정) f(진희) / 1234</p></div>`;
+ <label>아이디</label><input id="ph" onkeydown="if(event.key==='Enter')login(this.value,'1234')" autocapitalize="none" autocomplete="username">
+ <button style="width:100%;margin-top:16px" onclick="login($('#ph').value,'1234')">로그인</button>
+ <p class="m">테스트용: 아이디만 입력하면 들어갑니다.<br>사장님 admin · 알바 a(봉식) b(송희) c(은숙) d(희영) e(희정) f(진희)</p></div>`;
  const own=me.role==='owner',S=D.store.settings;
  if(own&&tab==='dash')return dash2();
  if(own&&tab==='board'){const st=sched(week).status;return weekHeader()+`<div class="card"><div class="row"><h2>스케줄 보드 <span class="tag ${st==='published'?'tg':'to'}">${st==='published'?'발행됨':'초안'}</span></h2>
