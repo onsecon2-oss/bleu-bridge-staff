@@ -128,6 +128,8 @@ main{max-width:1100px}.bv{min-width:14px}
  .avd .row{flex-wrap:nowrap}.avd select{min-width:0;padding:0 8px}.avd .seg button{padding:0 11px}
  .stp select{min-width:0}
 }
+header b.who2{display:block;font-size:24px;font-weight:800;letter-spacing:-.02em;color:var(--t);line-height:1.2}header small.brand{display:block;font-size:11px;font-weight:800;letter-spacing:.18em;color:var(--g);opacity:.8}
+@media(max-width:640px){header b.who2{font-size:22px}}
 </style></head><body><div id="app"></div><dialog id="dlg"></dialog>
 <script>
 const $=s=>document.querySelector(s),KEY='bb_v2';
@@ -174,6 +176,7 @@ async function loadRemote(){
  D.employees=v.employees;D.store.settings=Object.assign(D.store.settings,v.settings);D.schedules=v.schedules||{};D.assignments=v.assignments||[];
  const rows=await sbf('avail?select=emp,week,data');applyAvail(rows);return false}
 async function enter(){const first=await loadRemote();me=D.employees.find(x=>x.phone===loginId);if(!me)throw new Error('no emp');tab=me.role==='owner'?'board':'av';if(first&&me.role==='owner')await pushOwner();av=null;render()}
+function doLogin(){const id=$('#ph').value.trim().toLowerCase();login(id,id==='admin'?$('#pn').value:'1234')}
 async function login(id,pw){if(busy)return;busy=true;const b=document.querySelector('.login button');if(b)b.textContent='로그인 중…';
  try{id=id.trim().toLowerCase();await sbAuth('password',{email:id+'@bleu.app',password:pw+'bleu'});loginId=id;await enter()}catch(e){alert('아이디 또는 비밀번호가 맞지 않거나 연결에 실패했습니다');localStorage.removeItem(SK);sess=null;render()}busy=false}
 async function boot(){try{sess=JSON.parse(localStorage.getItem(SK)||'null');if(!sess)return;loginId=sess.id;if(Date.now()>sess.exp)await sbAuth('refresh_token',{refresh_token:sess.refresh_token});await enter()}catch(e){sess=null;localStorage.removeItem(SK);render()}}
@@ -424,9 +427,9 @@ function dayView(w,edit){const d=curDay(w),S=D.store.settings,o=tm(S.open)/60,c=
 function weekHeader(){return`<div class="row" style="margin-bottom:10px"><button class="s sm" onclick="week=addD(week,-7);render()">◀ 지난주</button><b>${fmtD(week)} ~ ${fmtD(addD(week,6))}</b><button class="s sm" onclick="week=addD(week,7);render()">다음주 ▶</button></div>`}
 function view(){
  if(!me)return`<div class="login card"><div class="logo">BLEU<br>BRIDGE</div><p class="m" style="text-align:center">알바 관리 · 여수시 소호1길 50</p>
- <label>아이디</label><input id="ph" onkeydown="if(event.key==='Enter')login(this.value,'1234')" autocapitalize="none" autocomplete="username">
- <button style="width:100%;margin-top:16px" onclick="login($('#ph').value,'1234')">로그인</button>
- <p class="m">테스트용: 아이디만 입력하면 들어갑니다.<br>사장님 admin · 알바 a(봉식) b(송희) c(은숙) d(희영) e(희정) f(진희)</p></div>`;
+ <label>아이디</label><input id="ph" oninput="$('#pwbox').style.display=this.value.trim().toLowerCase()==='admin'?'block':'none'" onkeydown="if(event.key==='Enter')doLogin()" autocapitalize="none" autocomplete="username"><div id="pwbox" style="display:none"><label>비밀번호 (사장님)</label><input id="pn" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+ <button style="width:100%;margin-top:16px" onclick="doLogin()">로그인</button>
+ <p class="m">알바는 아이디만 입력하면 들어갑니다.<br>사장님 admin · 알바 a(봉식) b(송희) c(은숙) d(희영) e(희정) f(진희)</p></div>`;
  const own=me.role==='owner',S=D.store.settings;
  if(own&&tab==='dash')return dash2();
  if(own&&tab==='board'){const st=sched(week).status;return weekHeader()+`<div class="card"><div class="row"><h2>스케줄 보드 <span class="tag ${st==='published'?'tg':'to'}">${st==='published'?'발행됨':'초안'}</span></h2>
@@ -476,13 +479,15 @@ function csv(){const r=[['이름','날짜','출근','퇴근','상태']].concat(D
 function staffTab(){const S=S2();
  return`<div class="card"><h2>직원 관리</h2>${D.employees.filter(e=>e.role!=='owner').map(e=>`<div class="row" style="padding:6px 0;border-bottom:1px solid #eee"><span><span class="chip" style="background:${e.color};display:inline-block">${e.name}</span> <span class="m">${e.phone} · 시급 ${e.wage.toLocaleString()}원 ${e.active?'':'(퇴사)'}</span></span><button class="s sm" onclick="editEmp('${e.id}')">수정</button></div>`).join('')}
  <button style="margin-top:12px" onclick="editEmp()">+ 직원 등록</button></div>
- <div class="card"><h2>매장 설정</h2><h3>스케줄 추천 기준</h3><label>영업 시작</label><select id="t1">${opts(S.open)}</select><label>영업 종료</label><select id="t2">${opts(S.close)}</select><label>평일 필요 인원 (시간대별)</label><input id="t3" type="number" value="${S.needWD}"><label>주말 필요 인원</label><input id="t4" type="number" value="${S.needWE}"><label>하루 최대 근무시간</label><input id="t5" type="number" value="${S.maxDay}"><label>주 최대 근무시간</label><input id="t6" type="number" value="${S.maxWeek}"><h3>시간대별 필요 인원 예외</h3><p class="m">기본 필요 인원 위에 덮어쓰는 규칙입니다. (0명 = 근무 불필요)</p>${(S.bands||[]).map((b,i)=>`<div class="row" style="gap:4px;margin-bottom:6px"><select id="bd${i}" style="flex:1.2"><option value="all" ${b.d==='all'?'selected':''}>매일</option><option value="wd" ${b.d==='wd'?'selected':''}>평일</option><option value="we" ${b.d==='we'?'selected':''}>주말</option></select><select id="bs${i}" style="flex:1.5">${opts(b.s)}</select><select id="be${i}" style="flex:1.5">${opts(b.e)}</select><input id="bn${i}" type="number" value="${b.n}" style="flex:1"><button class="d sm" onclick="delBand(${i})">삭제</button></div>`).join('')}<button class="s sm" onclick="addBand()">+ 예외 추가</button><h3>출퇴근 인증 (나중 기능)</h3><label>위도</label><input id="s1" value="${S.lat}"><label>경도</label><input id="s2" value="${S.lng}"><label>인증 반경(m)</label><input id="s3" value="${S.geofence_m}">
+ <div class="card"><h2>매장 설정</h2><h3>사장님 비밀번호 변경</h3><label>새 비밀번호 (4자 이상)</label><input id="npw" type="password" autocomplete="new-password"><button style="margin-top:8px" onclick="changePw()">비밀번호 변경</button><h3>스케줄 추천 기준</h3><label>영업 시작</label><select id="t1">${opts(S.open)}</select><label>영업 종료</label><select id="t2">${opts(S.close)}</select><label>평일 필요 인원 (시간대별)</label><input id="t3" type="number" value="${S.needWD}"><label>주말 필요 인원</label><input id="t4" type="number" value="${S.needWE}"><label>하루 최대 근무시간</label><input id="t5" type="number" value="${S.maxDay}"><label>주 최대 근무시간</label><input id="t6" type="number" value="${S.maxWeek}"><h3>시간대별 필요 인원 예외</h3><p class="m">기본 필요 인원 위에 덮어쓰는 규칙입니다. (0명 = 근무 불필요)</p>${(S.bands||[]).map((b,i)=>`<div class="row" style="gap:4px;margin-bottom:6px"><select id="bd${i}" style="flex:1.2"><option value="all" ${b.d==='all'?'selected':''}>매일</option><option value="wd" ${b.d==='wd'?'selected':''}>평일</option><option value="we" ${b.d==='we'?'selected':''}>주말</option></select><select id="bs${i}" style="flex:1.5">${opts(b.s)}</select><select id="be${i}" style="flex:1.5">${opts(b.e)}</select><input id="bn${i}" type="number" value="${b.n}" style="flex:1"><button class="d sm" onclick="delBand(${i})">삭제</button></div>`).join('')}<button class="s sm" onclick="addBand()">+ 예외 추가</button><h3>출퇴근 인증 (나중 기능)</h3><label>위도</label><input id="s1" value="${S.lat}"><label>경도</label><input id="s2" value="${S.lng}"><label>인증 반경(m)</label><input id="s3" value="${S.geofence_m}">
  <label>지각 유예(분)</label><input id="s4" value="${S.late_grace_min}"><label>최저시급</label><input id="s5" value="${S.min_wage}">
  <p class="m">매장 좌표는 네이버 지도에서 확인해 정확히 입력하세요. 현재 값은 여수 소호동 대략 위치입니다.</p>
  <button onclick="saveSet()">설정 저장</button> </div>`}
 function collectBands(){const S=S2();S.bands=(S.bands||[]).map((b,i)=>$('#bd'+i)?{d:$('#bd'+i).value,s:$('#bs'+i).value,e:$('#be'+i).value,n:+$('#bn'+i).value}:b)}
 function addBand(){collectBands();S2().bands.push({d:'all',s:'12:00',e:'14:00',n:3});save();render()}
 function delBand(i){collectBands();S2().bands.splice(i,1);save();render()}
+async function changePw(){const v=$('#npw').value;if(v.length<4)return alert('4자 이상 입력하세요');
+ try{const r=await fetch(SBU+'/auth/v1/user',{method:'PUT',headers:{apikey:SBK,Authorization:'Bearer '+sess.access_token,'Content-Type':'application/json'},body:JSON.stringify({password:v+'bleu'})});if(!r.ok)throw 0;$('#npw').value='';alert('비밀번호를 바꿨습니다. 다음 로그인부터 새 비밀번호를 입력하세요.')}catch(e){alert('변경에 실패했습니다. 다시 시도해 주세요.')}}
 function saveSet(){const S=S2();collectBands();S.open=$('#t1').value;S.close=$('#t2').value;S.needWD=+$('#t3').value;S.needWE=+$('#t4').value;S.maxDay=+$('#t5').value;S.maxWeek=+$('#t6').value;S.lat=+$('#s1').value;S.lng=+$('#s2').value;S.geofence_m=+$('#s3').value;S.late_grace_min=+$('#s4').value;S.min_wage=+$('#s5').value;save();alert('저장했습니다')}
 function editEmp(id){const e=id?emp(id):{name:'',phone:'',wage:S2().min_wage,pin:'',active:true};
  $('#dlg').innerHTML=`<h2>${id?'직원 수정':'직원 등록'}</h2><label>이름</label><input id="n1" value="${e.name}"><label>아이디</label><input id="n2" value="${e.phone}"><label>시급</label><input id="n3" value="${e.wage}">
@@ -495,7 +500,7 @@ function saveEmp(id){const w=+$('#n3').value;if(w<S2().min_wage)return alert('�
  save();$('#dlg').close();render()}
 function render(){const own=me&&me.role==='owner';
  const tabs=!me?[]:own?[['board','스케줄'],['dash','가능일 현황'],['staff','직원·설정']]:[['av','가능일'],['week','일정']];
- $('#app').innerHTML=(me?`<header><div><b>BLEU BRIDGE</b><small>${me.name}${own?' (사장)':''}</small></div><button class="s sm" onclick="logout()">로그아웃</button></header>`:'')+'<main>'+view()+'</main>'+
+ $('#app').innerHTML=(me?`<header><div><small class="brand">BLEU BRIDGE</small><b class="who2">${own?'사장님':me.name+'님'}</b></div><button class="s sm" onclick="logout()">로그아웃</button></header>`:'')+'<main>'+view()+'</main>'+
  (me?'<nav>'+tabs.map(t=>`<button class="${tab===t[0]?'on':''}" onclick="tab='${t[0]}';render()">${t[1]}</button>`).join('')+'</nav>':'')}
 render();boot();
 </script></body></html>
