@@ -161,7 +161,7 @@ const toUTC=(date,t)=>new Date(date+'T'+t+':00+09:00').toISOString();
 function seed(){const names=['봉식','송희','은숙','희영','희정','진희'];
  return{store:{id:'store1',name:'BLEU BRIDGE',address:'여수시 소호1길 50',
   settings:{lat:34.7413,lng:127.7424,geofence_m:150,late_grace_min:5,missing_out_hours:2,allowed_ip:'',min_wage:10320,
-  presets:[{n:'오전',s:'08:00',e:'13:00'},{n:'오후',s:'13:00',e:'18:00'},{n:'마감',s:'17:00',e:'22:00'},{n:'종일',s:'09:00',e:'18:00'}]}},
+  presets:[{n:'오픈~16시',s:'10:00',e:'16:00'},{n:'18시~마감',s:'18:00',e:'22:30'},{n:'19시~마감',s:'19:00',e:'22:30'},{n:'종일',s:'10:00',e:'22:30'}],v8:1}},
   employees:[{id:'e0',name:'사장님',phone:'admin',pin:'1234',role:'owner',wage:0,color:COLORS[6],active:true},
    ...names.map((n,i)=>({id:'e'+(i+1),name:n,phone:'abcdef'[i],pin:'1234',role:'staff',wage:10320,color:COLORS[i%6],active:true,invite:'pending'}))],
   schedules:{},assignments:[],logs:[],audit:[]}}
@@ -183,7 +183,7 @@ async function pushOwner(){status('저장 중…');try{await up('app_state',{key
 function save(){if(!sess||!isOwner())return;clearTimeout(saveT);saveT=setTimeout(pushOwner,400)}
 async function pushAvail(w){const a=D.avail[w]&&D.avail[w][me.id];if(!a)return;try{await up('avail',{emp:loginId,week:w,data:a,updated_at:new Date().toISOString()})}catch(e){alert('제출 저장에 실패했습니다. 연결을 확인하고 다시 눌러 주세요.')}}
 function applyAvail(rows){const idOf={};D.employees.forEach(e=>idOf[e.phone]=e.id);D.avail={};rows.forEach(r=>{const id=idOf[r.emp];if(!id)return;(D.avail[r.week]=D.avail[r.week]||{})[id]=r.data})}
-function mig(){const s=D.store.settings;if(s.v7!==1){s.bands=[{d:'wd',s:'16:00',e:'18:00',n:0},{d:'we',s:'13:00',e:'16:00',n:3}];s.v4=1;s.v5=1;s.v6=1;s.v7=1}}
+function mig(){const s=D.store.settings;if(s.v8!==1){s.presets=[{n:'오픈~16시',s:'10:00',e:'16:00'},{n:'18시~마감',s:'18:00',e:'22:30'},{n:'19시~마감',s:'19:00',e:'22:30'},{n:'종일',s:'10:00',e:'22:30'}];s.v8=1}if(s.v7!==1){s.bands=[{d:'wd',s:'16:00',e:'18:00',n:0},{d:'we',s:'13:00',e:'16:00',n:3}];s.v4=1;s.v5=1;s.v6=1;s.v7=1}}
 async function loadRemote(){
  if(isOwner()||loginId==='admin'){const m=await sbf('app_state?key=eq.main&select=value');
   if(m&&m.length){const v=m[0].value;D.employees=v.employees;D.store.settings=Object.assign(D.store.settings,v.settings);mig();D.schedules=v.schedules||{};D.assignments=v.assignments||[];D.audit=v.audit||[];D.logs=v.logs||[]}
@@ -305,10 +305,10 @@ function genAI(){const w=week,days=weekDays(w),S=D.store.settings;
   for(;;){let best=null;
    subs.forEach(e=>{if(used[e.id].length>=2)return;const a=avOf(e.id,d);if(!a||a.st==='n')return;
     const lo=Math.max(o,Math.ceil(tm(a.s)/30)),hi=Math.min(c,Math.floor(tm(a.e)/30)),dh=used[e.id].reduce((q,r)=>q+r[1]-r[0],0),L=Math.min(S.maxDay*2-dh,(S.maxWeek-weekly[e.id])*2);if(hi-lo<1||L<1)return;
-    const HH=hist[e.id+'|'+dw]||{};for(let s=lo;s<hi;s++){if(nd[s]===0)continue;for(let t=s+1;t<=Math.min(hi,s+L);t++){if(nd[t-1]===0)break;if(used[e.id].some(r=>s<r[1]+2&&r[0]<t+2))continue;let g=0,hb=0;for(let x=s;x<t;x++){if(cov[x]<nd[x])g++;hb+=(HH[x]||0)*12}if(!g)continue;
+    const HH=hist[e.id+'|'+dw]||{};for(let s=lo;s<hi;s++){if(nd[s]===0)continue;if(s>=36&&s!==36&&s!==38)continue;for(let t=s+1;t<=Math.min(hi,s+L);t++){if(nd[t-1]===0)break;if(t>36&&t!==c&&!(t===hi&&hi>=c-2))continue;if(used[e.id].some(r=>s<r[1]+2&&r[0]<t+2))continue;let g=0,hb=0;for(let x=s;x<t;x++){if(cov[x]<nd[x])g++;hb+=(HH[x]||0)*12}if(!g)continue;
      const sc=g*50-(t-s-g)*60+(a.st==='p'?15:0)-weekly[e.id]*2-(used[e.id].length?10:0)+hb;if(!best||sc>best.sc)best={sc,e,s,t}}}});
    if(!best)break;let {e,s,t}=best;const a=avOf(e.id,d),lo=Math.max(o,Math.ceil(tm(a.s)/30)),hi=Math.min(c,Math.floor(tm(a.e)/30));
-   while(t-s<4){const ok=(a2,b2)=>!used[e.id].some(r=>a2<r[1]&&r[0]<b2);if(t<hi&&nd[t]>0&&ok(s,t+1))t++;else if(s>lo&&nd[s-1]>0&&ok(s-1,t))s--;else break}
+   while(t-s<4){const ok=(a2,b2)=>!used[e.id].some(r=>a2<r[1]&&r[0]<b2);if(t<hi&&nd[t]>0&&ok(s,t+1)&&(t+1<=36||t+1===c))t++;else if(s>lo&&nd[s-1]>0&&ok(s-1,t)&&(s-1<36||s-1===36||s-1===38))s--;else break}
    for(let x=s;x<t;x++)cov[x]++;used[e.id].push([s,t]);weekly[e.id]+=(t-s)/2;
    D.assignments.push({id:'a'+Math.random(),emp:e.id,date:d,s:T(s),e:T(t),start:toUTC(d,T(s)),end:toUTC(d,T(t)),source:'ai'})}});
  audit('schedule',w,null,{ai:true},'AI 초안 생성');sched(w).status='draft';save();render();
