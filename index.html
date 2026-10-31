@@ -165,7 +165,7 @@ function seed(){const names=['봉식','송희','은숙','희영','희정','진�
   employees:[{id:'e0',name:'사장님',phone:'admin',pin:'1234',role:'owner',wage:0,color:COLORS[6],active:true},
    ...names.map((n,i)=>({id:'e'+(i+1),name:n,phone:'abcdef'[i],pin:'1234',role:'staff',wage:10320,color:COLORS[i%6],active:true,invite:'pending'}))],
   schedules:{},assignments:[],logs:[],audit:[]}}
-let D=seed();D.avail=D.avail||{};{const PAL=['#e6194b','#1f6feb','#12a150','#f58220','#8e44ad','#00a3b4'];D.employees.filter(e=>e.role!=='owner').forEach((e,i)=>{if(i<6)e.color=PAL[i]})}Object.assign(D.store.settings,Object.assign({open:'10:00',close:'22:30',needWD:2,needWE:2,maxDay:10,maxWeek:40,bands:[{d:'all',s:'15:30',e:'18:00',n:0},{d:'we',s:'13:00',e:'15:30',n:3}]},D.store.settings));if(!D.store.settings.v3){D.store.settings.maxDay=10;D.store.settings.v3=1}if(!D.store.settings.v2){D.store.settings.open='10:00';D.store.settings.close='22:30';D.store.settings.v2=1}{const ids={e0:'admin',e1:'a',e2:'b',e3:'c',e4:'d',e5:'e',e6:'f'};D.employees.forEach(e=>{if(ids[e.id]){e.phone=ids[e.id];e.pin='1234'}})}
+let D=seed();D.avail=D.avail||{};{const PAL=['#e6194b','#1f6feb','#12a150','#f58220','#8e44ad','#00a3b4'];D.employees.filter(e=>e.role!=='owner').forEach((e,i)=>{if(i<6)e.color=PAL[i]})}Object.assign(D.store.settings,Object.assign({open:'10:00',close:'22:30',needWD:2,needWE:2,maxDay:10,maxWeek:40,bands:[{d:'wd',s:'15:30',e:'18:00',n:0},{d:'we',s:'13:00',e:'16:00',n:3}]},D.store.settings));if(!D.store.settings.v3){D.store.settings.maxDay=10;D.store.settings.v3=1}if(!D.store.settings.v2){D.store.settings.open='10:00';D.store.settings.close='22:30';D.store.settings.v2=1}{const ids={e0:'admin',e1:'a',e2:'b',e3:'c',e4:'d',e5:'e',e6:'f'};D.employees.forEach(e=>{if(ids[e.id]){e.phone=ids[e.id];e.pin='1234'}})}
 let me=null,tab='home',week=monday(ymd(new Date()));
 const SBU='https://sriyreomlemocdsrpytj.supabase.co',SBK='sb_publishable_pe2_DlW_7rvdjRvE4JK2Aw_B9f68Czj',SK='bb_sess';
 let sess=null,loginId=null,busy=false,saveT=null;
@@ -183,7 +183,7 @@ async function pushOwner(){status('저장 중…');try{await up('app_state',{key
 function save(){if(!sess||!isOwner())return;clearTimeout(saveT);saveT=setTimeout(pushOwner,400)}
 async function pushAvail(w){const a=D.avail[w]&&D.avail[w][me.id];if(!a)return;try{await up('avail',{emp:loginId,week:w,data:a,updated_at:new Date().toISOString()})}catch(e){alert('제출 저장에 실패했습니다. 연결을 확인하고 다시 눌러 주세요.')}}
 function applyAvail(rows){const idOf={};D.employees.forEach(e=>idOf[e.phone]=e.id);D.avail={};rows.forEach(r=>{const id=idOf[r.emp];if(!id)return;(D.avail[r.week]=D.avail[r.week]||{})[id]=r.data})}
-function mig(){const s=D.store.settings;if(s.v5!==1){s.bands=[{d:'all',s:'15:30',e:'18:00',n:0},{d:'we',s:'13:00',e:'15:30',n:3}];s.v4=1;s.v5=1}}
+function mig(){const s=D.store.settings;if(s.v6!==1){s.bands=[{d:'wd',s:'15:30',e:'18:00',n:0},{d:'we',s:'13:00',e:'16:00',n:3}];s.v4=1;s.v5=1;s.v6=1}}
 async function loadRemote(){
  if(isOwner()||loginId==='admin'){const m=await sbf('app_state?key=eq.main&select=value');
   if(m&&m.length){const v=m[0].value;D.employees=v.employees;D.store.settings=Object.assign(D.store.settings,v.settings);mig();D.schedules=v.schedules||{};D.assignments=v.assignments||[];D.audit=v.audit||[];D.logs=v.logs||[]}
@@ -230,7 +230,7 @@ function gridHTML(w,mine,edit){const days=weekDays(w),pub=sched(w).status==='pub
  return h+'</table></div>'}
 let undo=[];const snap=()=>{undo.push(JSON.stringify(D.assignments));if(undo.length>20)undo.shift()};
 function trimZero(){const days=weekDays(week);const bad=D.assignments.filter(a=>days.includes(a.date)&&[...Array(Math.ceil((tm(a.e)-tm(a.s))/30))].some((_,i)=>needAt(a.date,tm(a.s)+i*30)===0));
- if(!bad.length)return alert('근무 불필요 시간에 걸친 배정이 없습니다.');if(!confirm(bad.length+'건의 배정에서 근무 불필요 시간(15:30~18:00 등)을 잘라냅니다. 계속할까요?'))return;
+ if(!bad.length)return alert('근무 불필요 시간에 걸친 배정이 없습니다.');if(!confirm(bad.length+'건의 배정에서 근무 불필요 시간(평일 15:30~18:00)을 잘라냅니다. 계속할까요?'))return;
  snap();const T=m=>pad(m/60|0)+':'+pad(m%60);
  bad.forEach(a=>{D.assignments.splice(D.assignments.indexOf(a),1);let st=null;const s0=tm(a.s),e0=tm(a.e);
   for(let m=s0;m<=e0;m+=30){const ok=m<e0&&needAt(a.date,m)>0;if(ok&&st===null)st=m;if(!ok&&st!==null){D.assignments.push({...a,id:'a'+Math.random(),s:T(st),e:T(m),start:toUTC(a.date,T(st)),end:toUTC(a.date,T(m))});st=null}}});
