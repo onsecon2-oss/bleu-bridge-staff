@@ -146,6 +146,7 @@ body.out{background:#2A554E}.llogo{display:block;width:min(400px,86vw);height:au
 @media(max-width:640px){.vh>div{margin:0 .5px;padding:4px 0 3px}.pill{font-size:10px;padding:1px 5px}.vgap{left:8px}.vgap small{font-size:9px}.vc{margin:0 .5px}}
 .vh .gt{display:block;font-size:10px;color:#c0392b;font-weight:700;margin-top:1px;line-height:1.2}
 .pill.o{background:#f59e0b}.vover{background:repeating-linear-gradient(135deg,#f59e0b33,#f59e0b33 5px,#f59e0b14 5px,#f59e0b14 10px)!important;border-color:#f59e0b!important;z-index:3}.vover small{color:#b45309!important}
+.st2 .ow,.cvv .ow,.lg2 .ow{background:repeating-linear-gradient(45deg,#9db4d6,#9db4d6 3px,#c9d8ee 3px,#c9d8ee 6px)}
 </style></head><body><div id="app"></div><dialog id="dlg"></dialog>
 <script>
 const $=s=>document.querySelector(s),KEY='bb_v2';
@@ -166,7 +167,7 @@ function seed(){const names=['봉식','송희','은숙','희영','희정','진�
   employees:[{id:'e0',name:'사장님',phone:'admin',pin:'1234',role:'owner',wage:0,color:COLORS[6],active:true},
    ...names.map((n,i)=>({id:'e'+(i+1),name:n,phone:'abcdef'[i],pin:'1234',role:'staff',wage:10320,color:COLORS[i%6],active:true,invite:'pending'}))],
   schedules:{},assignments:[],logs:[],audit:[]}}
-let D=seed();D.avail=D.avail||{};{const PAL=['#e6194b','#1f6feb','#12a150','#f58220','#8e44ad','#00a3b4'];D.employees.filter(e=>e.role!=='owner').forEach((e,i)=>{if(i<6)e.color=PAL[i]})}Object.assign(D.store.settings,Object.assign({open:'10:00',close:'22:30',needWD:2,needWE:2,maxDay:10,maxWeek:40,bands:[{d:'wd',s:'16:00',e:'18:00',n:0},{d:'we',s:'13:00',e:'16:00',n:3}]},D.store.settings));if(!D.store.settings.v3){D.store.settings.maxDay=10;D.store.settings.v3=1}if(!D.store.settings.v2){D.store.settings.open='10:00';D.store.settings.close='22:30';D.store.settings.v2=1}{const ids={e0:'admin',e1:'a',e2:'b',e3:'c',e4:'d',e5:'e',e6:'f'};D.employees.forEach(e=>{if(ids[e.id]){e.phone=ids[e.id];e.pin='1234'}})}
+let D=seed();D.avail=D.avail||{};{const PAL=['#e6194b','#1f6feb','#12a150','#f58220','#8e44ad','#00a3b4'];D.employees.filter(e=>e.role!=='owner').forEach((e,i)=>{if(i<6)e.color=PAL[i]})}Object.assign(D.store.settings,Object.assign({open:'10:00',close:'22:30',needWD:2,needWE:2,maxDay:10,maxWeek:40,bands:[{d:'wd',s:'15:30',e:'16:00',n:0,o:1},{d:'wd',s:'16:00',e:'18:00',n:0},{d:'we',s:'13:00',e:'16:00',n:3}]},D.store.settings));if(!D.store.settings.v3){D.store.settings.maxDay=10;D.store.settings.v3=1}if(!D.store.settings.v2){D.store.settings.open='10:00';D.store.settings.close='22:30';D.store.settings.v2=1}{const ids={e0:'admin',e1:'a',e2:'b',e3:'c',e4:'d',e5:'e',e6:'f'};D.employees.forEach(e=>{if(ids[e.id]){e.phone=ids[e.id];e.pin='1234'}})}
 let me=null,tab='home',week=monday(ymd(new Date()));
 const SBU='https://sriyreomlemocdsrpytj.supabase.co',SBK='sb_publishable_pe2_DlW_7rvdjRvE4JK2Aw_B9f68Czj',SK='bb_sess';
 let sess=null,loginId=null,busy=false,saveT=null;
@@ -184,7 +185,7 @@ async function pushOwner(){status('저장 중…');try{await up('app_state',{key
 function save(){if(!sess||!isOwner())return;clearTimeout(saveT);saveT=setTimeout(pushOwner,400)}
 async function pushAvail(w){const a=D.avail[w]&&D.avail[w][me.id];if(!a)return;try{await up('avail',{emp:loginId,week:w,data:a,updated_at:new Date().toISOString()})}catch(e){alert('제출 저장에 실패했습니다. 연결을 확인하고 다시 눌러 주세요.')}}
 function applyAvail(rows){const idOf={};D.employees.forEach(e=>idOf[e.phone]=e.id);D.avail={};rows.forEach(r=>{const id=idOf[r.emp];if(!id)return;(D.avail[r.week]=D.avail[r.week]||{})[id]=r.data})}
-function mig(){const s=D.store.settings;if(s.v9!==1){s.prio=[{name:'은숙',days:[1,2,3,5],s:'10:00',e:'15:30'}];s.v9=1}if(s.v8!==1){s.presets=[{n:'오픈~16시',s:'10:00',e:'16:00'},{n:'18시~마감',s:'18:00',e:'22:30'},{n:'19시~마감',s:'19:00',e:'22:30'},{n:'종일',s:'10:00',e:'22:30'}];s.v8=1}if(s.v7!==1){s.bands=[{d:'wd',s:'16:00',e:'18:00',n:0},{d:'we',s:'13:00',e:'16:00',n:3}];s.v4=1;s.v5=1;s.v6=1;s.v7=1}}
+function mig(){const s=D.store.settings;if(s.v9!==1){s.prio=[{name:'은숙',days:[1,2,3,5],s:'10:00',e:'15:30'}];s.v9=1}if(s.v8!==1){s.presets=[{n:'오픈~16시',s:'10:00',e:'16:00'},{n:'18시~마감',s:'18:00',e:'22:30'},{n:'19시~마감',s:'19:00',e:'22:30'},{n:'종일',s:'10:00',e:'22:30'}];s.v8=1}if(s.v7!==1){s.bands=[{d:'wd',s:'16:00',e:'18:00',n:0},{d:'we',s:'13:00',e:'16:00',n:3}];s.v4=1;s.v5=1;s.v6=1;s.v7=1}if(s.v10!==1){s.bands=[{d:'wd',s:'15:30',e:'16:00',n:0,o:1},{d:'wd',s:'16:00',e:'18:00',n:0},{d:'we',s:'13:00',e:'16:00',n:3}];s.v10=1}}
 async function loadRemote(){
  if(isOwner()||loginId==='admin'){const m=await sbf('app_state?key=eq.main&select=value');
   if(m&&m.length){const v=m[0].value;D.employees=v.employees;D.store.settings=Object.assign(D.store.settings,v.settings);mig();D.schedules=v.schedules||{};D.assignments=v.assignments||[];D.audit=v.audit||[];D.logs=v.logs||[]}
@@ -288,6 +289,7 @@ function availView(){if(!av)avInit();const w=nextW(),sub=D.avail[w]&&D.avail[w][
   (x.st==='n'?'':'<div class="row" style="margin-top:6px"><select onchange="avSet(\''+d+'\',\'s\',this.value)">'+opts(x.s)+'</select><span>~</span><select onchange="avSet(\''+d+'\',\'e\',this.value)">'+opts(x.e)+'</select></div>')+'</div>'}).join('')+
  '<button style="width:100%;margin-top:12px" onclick="avSubmit()">'+(sub?'다시 제출':'제출하기')+'</button></div>'}
 const isWE=d=>{const [y,m,dd]=d.split('-').map(Number),w=new Date(Date.UTC(y,m-1,dd)).getUTCDay();return w===0||w===6};
+function ownAt(d,m){const we=isWE(d);return (D.store.settings.bands||[]).some(b=>b.o&&(b.d==='all'||(b.d==='we'&&we)||(b.d==='wd'&&!we))&&m>=tm(b.s)&&m<tm(b.e))}
 function needAt(d,m){const S=D.store.settings,we=isWE(d);let n=we?S.needWE:S.needWD;(S.bands||[]).forEach(b=>{if((b.d==='all'||(b.d==='we'&&we)||(b.d==='wd'&&!we))&&m>=tm(b.s)&&m<tm(b.e))n=b.n});return n}
 const cntAt=(d,m)=>D.assignments.filter(a=>a.date===d&&tm(a.s)<=m&&tm(a.e)>=m+30).length;
 function gapList(w){const S=D.store.settings,o=tm(S.open),c=tm(S.close),out=[];
@@ -305,14 +307,14 @@ function genAI(){const w=week,days=weekDays(w),S=D.store.settings;
  const prevW=[1,2,3].map(k=>addD(w,-7*k)).filter(pw=>D.assignments.some(a=>weekDays(pw).includes(a.date)));
  const hist={};prevW.forEach(pw=>D.assignments.filter(a=>weekDays(pw).includes(a.date)).forEach(a=>{const dw=new Date(a.date+'T00:00:00Z').getUTCDay(),k=a.emp+'|'+dw,H=hist[k]=hist[k]||{};for(let u=tm(a.s)/30;u<tm(a.e)/30;u++)H[u]=(H[u]||0)+1}));
  const o=tm(S.open)/30,c=tm(S.close)/30,weekly={};subs.forEach(e=>weekly[e.id]=0);const T=u=>pad(u/2|0)+':'+(u%2?'30':'00');
- days.forEach(d=>{const cov={},nd={},dw=new Date(d+'T00:00:00Z').getUTCDay(),dw0=dw;for(let u=o;u<c;u++){cov[u]=0;nd[u]=needAt(d,u*30)}const used={};subs.forEach(e=>used[e.id]=[]);
+ days.forEach(d=>{const cov={},nd={},ow={},dw=new Date(d+'T00:00:00Z').getUTCDay(),dw0=dw;for(let u=o;u<c;u++){cov[u]=0;nd[u]=needAt(d,u*30);ow[u]=ownAt(d,u*30)}const used={};subs.forEach(e=>used[e.id]=[]);
   (S.prio||[]).forEach(p=>{if(!p.days.includes(dw0))return;const e=subs.find(x=>x.name===p.name);if(!e)return;const a=avOf(e.id,d);if(!a||a.st==='n')return;
-   const s=Math.max(o,tm(p.s)/30,Math.ceil(tm(a.s)/30)),t=Math.min(c,tm(p.e)/30,Math.floor(tm(a.e)/30));if(t-s<2)return;for(let x=s;x<t;x++)if(nd[x]===0||cov[x]>=nd[x])return;
+   const s=Math.max(o,tm(p.s)/30,Math.ceil(tm(a.s)/30)),t=Math.min(c,tm(p.e)/30,Math.floor(tm(a.e)/30));if(t-s<4)return;for(let x=s;x<t;x++)if(nd[x]===0||cov[x]>=nd[x])return;
    for(let x=s;x<t;x++)cov[x]++;used[e.id].push([s,t]);weekly[e.id]+=(t-s)/2;D.assignments.push({id:'a'+Math.random(),emp:e.id,date:d,s:T(s),e:T(t),start:toUTC(d,T(s)),end:toUTC(d,T(t)),source:'ai'})});
   for(;;){let best=null;
    subs.forEach(e=>{if(used[e.id].length>=2)return;const a=avOf(e.id,d);if(!a||a.st==='n')return;
     const lo=Math.max(o,Math.ceil(tm(a.s)/30)),hi=Math.min(c,Math.floor(tm(a.e)/30)),dh=used[e.id].reduce((q,r)=>q+r[1]-r[0],0),L=Math.min(S.maxDay*2-dh,(S.maxWeek-weekly[e.id])*2);if(hi-lo<1||L<1)return;
-    const HH=hist[e.id+'|'+dw]||{};for(let s=lo;s<hi;s++){if(nd[s]===0||cov[s]>=nd[s])continue;if(s>=36&&s!==36&&s!==38)continue;for(let t=s+1;t<=Math.min(hi,s+L);t++){if(nd[t-1]===0||cov[t-1]>=nd[t-1])break;if(t>36&&t!==c&&!(t===hi&&hi>=c-2))continue;if(used[e.id].some(r=>s<r[1]+2&&r[0]<t+2))continue;let g=0,hb=0;for(let x=s;x<t;x++){if(cov[x]<nd[x])g++;hb+=(HH[x]||0)*12}if(!g)continue;
+    const HH=hist[e.id+'|'+dw]||{};for(let s=lo;s<hi;s++){if(nd[s]===0||cov[s]>=nd[s])continue;if(s>=36&&s!==36&&s!==38)continue;for(let t=s+1;t<=Math.min(hi,s+L);t++){if(nd[t-1]===0&&!ow[t-1])break;if(!ow[t-1]&&cov[t-1]>=nd[t-1])break;if(t-s<4)continue;if(t>36&&t!==c&&!(t===hi&&hi>=c-2))continue;if(used[e.id].some(r=>s<r[1]+2&&r[0]<t+2))continue;let g=0,hb=0;for(let x=s;x<t;x++){if(cov[x]<nd[x])g++;hb+=(HH[x]||0)*12}if(!g)continue;
      const sc=g*50-(t-s-g)*60+(a.st==='p'?15:0)-weekly[e.id]*2-(used[e.id].length?10:0)+hb;if(!best||sc>best.sc)best={sc,e,s,t}}}});
    if(!best)break;let {e,s,t}=best;const a=avOf(e.id,d),lo=Math.max(o,Math.ceil(tm(a.s)/30)),hi=Math.min(c,Math.floor(tm(a.e)/30));
    while(t-s<4){const ok=(a2,b2)=>!used[e.id].some(r=>a2<r[1]&&r[0]<b2);if(t<hi&&nd[t]>0&&cov[t]<nd[t]&&ok(s,t+1)&&(t+1<=36||t+1===c))t++;else if(s>lo&&nd[s-1]>0&&cov[s-1]<nd[s-1]&&ok(s-1,t)&&(s-1<36||s-1===36||s-1===38))s--;else break}
@@ -351,7 +353,7 @@ let orient='h';
 function rowClick(ev,d){const r=ev.currentTarget.getBoundingClientRect(),o=tm(D.store.settings.open),c=tm(D.store.settings.close),m=Math.min(c-60,o+Math.floor((ev.clientX-r.left)/r.width*(c-o)/30)*30),e=Math.min(c,m+240),T=x=>pad(x/60|0)+':'+pad(x%60);pick(d,null,T(m),T(e))}
 let dayOpen=null,showAv=false;
 const fT=t=>t.replace(':00','');
-function stripH(d,o,c){let s='<div class="st2">';for(let m=o;m<c;m+=30){const n=needAt(d,m),k=cntAt(d,m);s+='<i class="'+(n===0?'zz':k<n?'lo':'ok')+'"></i>'}return s+'</div>'}
+function stripH(d,o,c){let s='<div class="st2">';for(let m=o;m<c;m+=30){const n=needAt(d,m),k=cntAt(d,m);s+='<i class="'+(n===0?(ownAt(d,m)?'ow':'zz'):k<n?'lo':'ok')+'"></i>'}return s+'</div>'}
 function calView(w,edit){if(!edit&&sched(w).status!=='published')return'<p class="m">아직 발행된 일정이 없습니다.</p>';
  if(dayOpen&&!weekDays(w).includes(dayOpen))dayOpen=null;return dayOpen?dayD(w,edit):(wkTable?calAB(w,edit):calVert(w,edit))}
 let wkTable=false;
@@ -374,7 +376,7 @@ function calVert(w,edit){const S=D.store.settings,o=tm(S.open),c=tm(S.close),day
  const leg='<div class="legend">'+emps.map(e=>'<button class="lgb '+(hl===e.id?'on':'')+'" style="border-color:'+e.color+';'+(hl===e.id?'background:'+e.color+';color:#fff':'')+'" onclick="hlSet(\''+e.id+'\')"><i class="ini" style="background:'+e.color+'">'+iniOf(e)+'</i>'+e.name+' <b>'+(tot[e.id]||0)+'h</b>'+(tot[e.id]>=15?'<small>주휴</small>':'')+'</button>').join('')+'</div>';
  let hd='<div class="vh"><div class="gu0"></div>'+days.map(d=>'<div class="'+(isWE(d)?'we ':'')+(d===td?'td':'')+'" onclick="dayOpen=\''+d+'\';render()"><small>'+DOW[new Date(d+'T00:00:00Z').getUTCDay()]+'</small><b>'+ +d.slice(8)+'</b>'+(edit?(()=>{const g=gl.filter(x=>x.startsWith(fmtD(d)));const ov=overList(w).some(x=>x.startsWith(fmtD(d)));if(!g.length&&ov)return'<span class="pill o">초과</span>';return g.length?'<span class="pill r">부족</span><small class="gt">'+g[0].split(' ')[1].replace(/:00/g,'').replace('~','~\u200b')+(g.length>1?' 외 '+(g.length-1):'')+'</small>':'<span class="pill g">충족</span>'})():'')+'</div>').join('')+'</div>';
  let bd='<div class="vb" style="height:'+HT+'px"><div class="gu">'+hrs.map(v=>'<span style="top:'+y(v*60)+'%">'+v+'</span>').join('')+'</div>';
- days.forEach(d=>{let cv='';for(let m=o;m<c;m+=30){const n=needAt(d,m),k=cntAt(d,m);cv+='<i class="'+(n===0?'zz':k<n?'lo':'ok')+'"></i>'}
+ days.forEach(d=>{let cv='';for(let m=o;m<c;m+=30){const n=needAt(d,m),k=cntAt(d,m);cv+='<i class="'+(n===0?(ownAt(d,m)?'ow':'zz'):k<n?'lo':'ok')+'"></i>'}
   const packed=innerWidth<640;const mk=(a,e,l,n)=>{const dim=hl&&hl!==e.id;return'<div class="bv '+(a.source==='ai'?'ai':'')+'" style="top:'+y(tm(a.s))+'%;height:'+(y(tm(a.e))-y(tm(a.s)))+'%;background:'+e.color+';'+(packed?'left:'+(l*100/n)+'%;width:calc('+(100/n)+'% - 2px);right:auto;':'')+(dim?'opacity:.25':'')+'"'+(edit?' onclick="event.stopPropagation();pick(\''+d+'\',\''+a.emp+'\')"':'')+'><b>'+iniOf(e)+'</b></div>'};
   const lsP=packed?layout(D.assignments.filter(a=>a.date===d)).map(x=>mk(x.a,emp(x.a.emp),x.l,x.n)).join(''):'';
   const ls=packed?'<div class="lv" style="flex:1">'+(edit&&hl?(()=>{const v=avOf(hl,d);return v&&v.st!=='n'?'<div class="vav '+v.st+'" style="top:'+y(Math.max(o,tm(v.s)))+'%;height:'+(y(Math.min(c,tm(v.e)))-y(Math.max(o,tm(v.s))))+'%"></div>':(v?'<div class="vav n"></div>':'')})():'')+lsP+'</div>':emps.map(e=>{const dim=hl&&hl!==e.id;let av='';if(edit&&hl===e.id){const v=avOf(e.id,d);if(v&&v.st!=='n')av='<div class="vav '+v.st+'" style="top:'+y(Math.max(o,tm(v.s)))+'%;height:'+(y(Math.min(c,tm(v.e)))-y(Math.max(o,tm(v.s))))+'%"></div>';else if(v)av='<div class="vav n"></div>'}
@@ -384,7 +386,7 @@ function calVert(w,edit){const S=D.store.settings,o=tm(S.open),c=tm(S.close),day
   bd+='<div class="vc '+(d===td?'tdc':'')+(isWE(d)?' wec':'')+'" '+(edit?'onclick="vcol(event,\''+d+'\')"':'')+'>'+hrs.map(v=>'<div class="hl" style="top:'+y(v*60)+'%"></div>').join('')+'<div class="cvv">'+cv+'</div>'+gov+oov+'<div class="ls">'+ls+'</div></div>'});
  bd+='</div>';
  return leg+'<div class="row" style="margin:0 0 8px"><span class="m">'+(edit?'색 막대를 누르면 수정, 빈 곳을 누르면 추가, 요일을 누르면 그날 상세':'요일을 누르면 그날 상세')+'</span><span>'+(edit?'<button class="s sm" onclick="showAv=!showAv;if(showAv&&!hl)hl=emps[0].id;render()">'+(showAv?'✓ ':'')+'가능 시간</button> ':'')+'<button class="s sm" onclick="wkTable=true;render()">표로 보기</button></span></div><div class="vwrap">'+hd+bd+'</div>'+
-  '<div class="lg2"><span><i class="ok"></i>왼쪽 띠: 충족</span><span><i class="lo"></i>부족</span><span><i class="zz"></i>근무 불필요('+S.bands.filter(b=>b.n===0).map(b=>b.s+'~'+b.e).join(', ')+')</span>'+(edit?'<span>점선 = AI 배정</span>':'')+'</div>'+
+  '<div class="lg2"><span><i class="ok"></i>왼쪽 띠: 충족</span><span><i class="lo"></i>부족</span><span><i class="zz"></i>근무 불필요('+S.bands.filter(b=>b.n===0&&!b.o).map(b=>b.s+'~'+b.e).join(', ')+')</span><span><i class="ow"></i>사장님 담당('+S.bands.filter(b=>b.o).map(b=>b.s+'~'+b.e).join(', ')+')</span>'+(edit?'<span>점선 = AI 배정</span>':'')+'</div>'+
   (edit?'<h3>'+(gl.length?'인원 부족 '+gl.length+'곳':'필요 인원 충족')+'</h3>'+(gl.length?'<div class="m">'+gl.join('<br>')+'</div>':'')+(ol.length?'<h3 style="color:#d97706">인원 초과 '+ol.length+'곳</h3><div class="m">'+ol.join('<br>')+'</div>':''):'')}
 
 function avToggle(edit){return edit?'<button class="s sm" onclick="showAv=!showAv;render()">'+(showAv?'✓ ':'')+'가능 시간 보기</button>':''}
@@ -401,7 +403,7 @@ function calAB(w,edit){const S=D.store.settings,o=tm(S.open),c=tm(S.close),days=
   t+='<td class="tot"><b>'+(tot||'-')+'</b>'+(tot>=15?'<small>주휴</small>':'')+'</td></tr>'});
  t+='</table></div>';
  return '<div class="row" style="margin:0 0 8px"><button class="s sm" onclick="wkTable=false;render()">◀ 시간표로 보기</button></div><div class="row" style="margin:0 0 8px"><span class="m">'+(edit?'칸을 누르면 시간 입력, 요일을 누르면 그날 상세':'요일을 누르면 그날 상세')+'</span>'+avToggle(edit)+'</div>'+t+
-  '<div class="lg2"><span><i class="ok"></i>필요 인원 충족</span><span><i class="lo"></i>부족</span><span><i class="zz"></i>근무 불필요('+S.bands.filter(b=>b.n===0).map(b=>b.s+'~'+b.e).join(', ')+')</span>'+(edit?'<span class="aiL">점선 = AI가 넣은 칸</span>':'')+'</div>'+
+  '<div class="lg2"><span><i class="ok"></i>필요 인원 충족</span><span><i class="lo"></i>부족</span><span><i class="zz"></i>근무 불필요('+S.bands.filter(b=>b.n===0&&!b.o).map(b=>b.s+'~'+b.e).join(', ')+')</span><span><i class="ow"></i>사장님 담당('+S.bands.filter(b=>b.o).map(b=>b.s+'~'+b.e).join(', ')+')</span>'+(edit?'<span class="aiL">점선 = AI가 넣은 칸</span>':'')+'</div>'+
   (edit?'<h3>'+(gl.length?'인원 부족 '+gl.length+'곳':'필요 인원 충족')+'</h3>'+(gl.length?'<div class="m">'+gl.join('<br>')+'</div>':''):'')}
 function dayD(w,edit){const S=D.store.settings,o=tm(S.open),c=tm(S.close),d=dayOpen,days=weekDays(w),i=days.indexOf(d),x=m=>(m-o)/(c-o)*100;
  let emps=D.employees.filter(e=>e.active&&e.role!=='owner');if(!edit)emps=[...emps.filter(e=>e.id===me.id),...emps.filter(e=>e.id!==me.id)];
@@ -527,7 +529,7 @@ function staffTab(){const S=S2();
  <label>지각 유예(분)</label><input id="s4" value="${S.late_grace_min}"><label>최저시급</label><input id="s5" value="${S.min_wage}">
  <p class="m">매장 좌표는 네이버 지도에서 확인해 정확히 입력하세요. 현재 값은 여수 소호동 대략 위치입니다.</p>
  <button onclick="saveSet()">설정 저장</button> </div>`}
-function collectBands(){const S=S2();S.bands=(S.bands||[]).map((b,i)=>$('#bd'+i)?{d:$('#bd'+i).value,s:$('#bs'+i).value,e:$('#be'+i).value,n:+$('#bn'+i).value}:b)}
+function collectBands(){const S=S2();S.bands=(S.bands||[]).map((b,i)=>$('#bd'+i)?{d:$('#bd'+i).value,s:$('#bs'+i).value,e:$('#be'+i).value,n:+$('#bn'+i).value,o:b.o}:b)}
 function addBand(){collectBands();S2().bands.push({d:'all',s:'12:00',e:'14:00',n:3});save();render()}
 function delBand(i){collectBands();S2().bands.splice(i,1);save();render()}
 async function changePw(){const v=$('#npw').value;if(v.length<4)return alert('4자 이상 입력하세요');
