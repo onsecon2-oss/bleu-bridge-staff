@@ -145,6 +145,7 @@ body.out{background:#2A554E}.llogo{display:block;width:min(400px,86vw);height:au
 .vgap{position:absolute;left:11px;right:0;background:repeating-linear-gradient(135deg,#e5483a26,#e5483a26 5px,#e5483a10 5px,#e5483a10 10px);border-top:2px solid #e5483a;border-bottom:2px solid #e5483a;z-index:1;pointer-events:none;display:flex;align-items:center;justify-content:center}.vgap small{font-size:10px;line-height:1.2;color:#c0392b;font-weight:800;text-align:center}
 @media(max-width:640px){.vh>div{margin:0 .5px;padding:4px 0 3px}.pill{font-size:10px;padding:1px 5px}.vgap{left:8px}.vgap small{font-size:9px}.vc{margin:0 .5px}}
 .vh .gt{display:block;font-size:10px;color:#c0392b;font-weight:700;margin-top:1px;line-height:1.2}
+.pill.o{background:#f59e0b}.vover{background:repeating-linear-gradient(135deg,#f59e0b33,#f59e0b33 5px,#f59e0b14 5px,#f59e0b14 10px)!important;border-color:#f59e0b!important;z-index:3}.vover small{color:#b45309!important}
 </style></head><body><div id="app"></div><dialog id="dlg"></dialog>
 <script>
 const $=s=>document.querySelector(s),KEY='bb_v2';
@@ -161,7 +162,7 @@ const toUTC=(date,t)=>new Date(date+'T'+t+':00+09:00').toISOString();
 function seed(){const names=['봉식','송희','은숙','희영','희정','진희'];
  return{store:{id:'store1',name:'BLEU BRIDGE',address:'여수시 소호1길 50',
   settings:{lat:34.7413,lng:127.7424,geofence_m:150,late_grace_min:5,missing_out_hours:2,allowed_ip:'',min_wage:10320,
-  presets:[{n:'오픈~16시',s:'10:00',e:'16:00'},{n:'18시~마감',s:'18:00',e:'22:30'},{n:'19시~마감',s:'19:00',e:'22:30'},{n:'종일',s:'10:00',e:'22:30'}],v8:1}},
+  presets:[{n:'오픈~16시',s:'10:00',e:'16:00'},{n:'18시~마감',s:'18:00',e:'22:30'},{n:'19시~마감',s:'19:00',e:'22:30'},{n:'종일',s:'10:00',e:'22:30'}],v8:1,v9:1,prio:[{name:'은숙',days:[1,2,3,5],s:'10:00',e:'15:30'}]}},
   employees:[{id:'e0',name:'사장님',phone:'admin',pin:'1234',role:'owner',wage:0,color:COLORS[6],active:true},
    ...names.map((n,i)=>({id:'e'+(i+1),name:n,phone:'abcdef'[i],pin:'1234',role:'staff',wage:10320,color:COLORS[i%6],active:true,invite:'pending'}))],
   schedules:{},assignments:[],logs:[],audit:[]}}
@@ -183,7 +184,7 @@ async function pushOwner(){status('저장 중…');try{await up('app_state',{key
 function save(){if(!sess||!isOwner())return;clearTimeout(saveT);saveT=setTimeout(pushOwner,400)}
 async function pushAvail(w){const a=D.avail[w]&&D.avail[w][me.id];if(!a)return;try{await up('avail',{emp:loginId,week:w,data:a,updated_at:new Date().toISOString()})}catch(e){alert('제출 저장에 실패했습니다. 연결을 확인하고 다시 눌러 주세요.')}}
 function applyAvail(rows){const idOf={};D.employees.forEach(e=>idOf[e.phone]=e.id);D.avail={};rows.forEach(r=>{const id=idOf[r.emp];if(!id)return;(D.avail[r.week]=D.avail[r.week]||{})[id]=r.data})}
-function mig(){const s=D.store.settings;if(s.v8!==1){s.presets=[{n:'오픈~16시',s:'10:00',e:'16:00'},{n:'18시~마감',s:'18:00',e:'22:30'},{n:'19시~마감',s:'19:00',e:'22:30'},{n:'종일',s:'10:00',e:'22:30'}];s.v8=1}if(s.v7!==1){s.bands=[{d:'wd',s:'16:00',e:'18:00',n:0},{d:'we',s:'13:00',e:'16:00',n:3}];s.v4=1;s.v5=1;s.v6=1;s.v7=1}}
+function mig(){const s=D.store.settings;if(s.v9!==1){s.prio=[{name:'은숙',days:[1,2,3,5],s:'10:00',e:'15:30'}];s.v9=1}if(s.v8!==1){s.presets=[{n:'오픈~16시',s:'10:00',e:'16:00'},{n:'18시~마감',s:'18:00',e:'22:30'},{n:'19시~마감',s:'19:00',e:'22:30'},{n:'종일',s:'10:00',e:'22:30'}];s.v8=1}if(s.v7!==1){s.bands=[{d:'wd',s:'16:00',e:'18:00',n:0},{d:'we',s:'13:00',e:'16:00',n:3}];s.v4=1;s.v5=1;s.v6=1;s.v7=1}}
 async function loadRemote(){
  if(isOwner()||loginId==='admin'){const m=await sbf('app_state?key=eq.main&select=value');
   if(m&&m.length){const v=m[0].value;D.employees=v.employees;D.store.settings=Object.assign(D.store.settings,v.settings);mig();D.schedules=v.schedules||{};D.assignments=v.assignments||[];D.audit=v.audit||[];D.logs=v.logs||[]}
@@ -292,6 +293,9 @@ const cntAt=(d,m)=>D.assignments.filter(a=>a.date===d&&tm(a.s)<=m&&tm(a.e)>=m+30
 function gapList(w){const S=D.store.settings,o=tm(S.open),c=tm(S.close),out=[];
  weekDays(w).forEach(d=>{let st=null,mn=9,nd=0;for(let m=o;m<=c;m+=30){const need=m<c?needAt(d,m):0,n=m<c?cntAt(d,m):0;
   if(m<c&&n<need){if(st===null){st=m;mn=n;nd=need}else mn=Math.min(mn,n)}else if(st!==null){out.push(fmtD(d)+' '+pad(st/60|0)+':'+pad(st%60)+'~'+pad(m/60|0)+':'+pad(m%60)+' ('+mn+'/'+nd+'명)');st=null}}});return out}
+function overList(w){const S=D.store.settings,o=tm(S.open),c=tm(S.close),out=[];
+ weekDays(w).forEach(d=>{let st=null,mx=0;for(let m=o;m<=c;m+=30){const need=m<c?needAt(d,m):0,n=m<c?cntAt(d,m):0;
+  if(m<c&&need>0&&n>need){if(st===null){st=m;mx=n}else mx=Math.max(mx,n)}else if(st!==null){out.push(fmtD(d)+' '+pad(st/60|0)+':'+pad(st%60)+'~'+pad(m/60|0)+':'+pad(m%60)+' ('+mx+'명, 최대 '+needAt(d,st)+'명)');st=null}}});return out}
 function gapsHTML(w){const g=gapList(w);return'<h3>'+(g.length?'인원 부족 '+g.length+'곳':'필요 인원 충족')+'</h3>'+(g.length?'<div class="m">'+g.join('<br>')+'</div>':'<span class="tag tg">모든 시간대 충족</span>')}
 function genAI(){const w=week,days=weekDays(w),S=D.store.settings;
  const subs=D.employees.filter(e=>e.active&&e.role!=='owner'&&D.avail[w]&&D.avail[w][e.id]);
@@ -301,14 +305,17 @@ function genAI(){const w=week,days=weekDays(w),S=D.store.settings;
  const prevW=[1,2,3].map(k=>addD(w,-7*k)).filter(pw=>D.assignments.some(a=>weekDays(pw).includes(a.date)));
  const hist={};prevW.forEach(pw=>D.assignments.filter(a=>weekDays(pw).includes(a.date)).forEach(a=>{const dw=new Date(a.date+'T00:00:00Z').getUTCDay(),k=a.emp+'|'+dw,H=hist[k]=hist[k]||{};for(let u=tm(a.s)/30;u<tm(a.e)/30;u++)H[u]=(H[u]||0)+1}));
  const o=tm(S.open)/30,c=tm(S.close)/30,weekly={};subs.forEach(e=>weekly[e.id]=0);const T=u=>pad(u/2|0)+':'+(u%2?'30':'00');
- days.forEach(d=>{const cov={},nd={},dw=new Date(d+'T00:00:00Z').getUTCDay();for(let u=o;u<c;u++){cov[u]=0;nd[u]=needAt(d,u*30)}const used={};subs.forEach(e=>used[e.id]=[]);
+ days.forEach(d=>{const cov={},nd={},dw=new Date(d+'T00:00:00Z').getUTCDay(),dw0=dw;for(let u=o;u<c;u++){cov[u]=0;nd[u]=needAt(d,u*30)}const used={};subs.forEach(e=>used[e.id]=[]);
+  (S.prio||[]).forEach(p=>{if(!p.days.includes(dw0))return;const e=subs.find(x=>x.name===p.name);if(!e)return;const a=avOf(e.id,d);if(!a||a.st==='n')return;
+   const s=Math.max(o,tm(p.s)/30,Math.ceil(tm(a.s)/30)),t=Math.min(c,tm(p.e)/30,Math.floor(tm(a.e)/30));if(t-s<2)return;for(let x=s;x<t;x++)if(nd[x]===0||cov[x]>=nd[x])return;
+   for(let x=s;x<t;x++)cov[x]++;used[e.id].push([s,t]);weekly[e.id]+=(t-s)/2;D.assignments.push({id:'a'+Math.random(),emp:e.id,date:d,s:T(s),e:T(t),start:toUTC(d,T(s)),end:toUTC(d,T(t)),source:'ai'})});
   for(;;){let best=null;
    subs.forEach(e=>{if(used[e.id].length>=2)return;const a=avOf(e.id,d);if(!a||a.st==='n')return;
     const lo=Math.max(o,Math.ceil(tm(a.s)/30)),hi=Math.min(c,Math.floor(tm(a.e)/30)),dh=used[e.id].reduce((q,r)=>q+r[1]-r[0],0),L=Math.min(S.maxDay*2-dh,(S.maxWeek-weekly[e.id])*2);if(hi-lo<1||L<1)return;
-    const HH=hist[e.id+'|'+dw]||{};for(let s=lo;s<hi;s++){if(nd[s]===0)continue;if(s>=36&&s!==36&&s!==38)continue;for(let t=s+1;t<=Math.min(hi,s+L);t++){if(nd[t-1]===0)break;if(t>36&&t!==c&&!(t===hi&&hi>=c-2))continue;if(used[e.id].some(r=>s<r[1]+2&&r[0]<t+2))continue;let g=0,hb=0;for(let x=s;x<t;x++){if(cov[x]<nd[x])g++;hb+=(HH[x]||0)*12}if(!g)continue;
+    const HH=hist[e.id+'|'+dw]||{};for(let s=lo;s<hi;s++){if(nd[s]===0||cov[s]>=nd[s])continue;if(s>=36&&s!==36&&s!==38)continue;for(let t=s+1;t<=Math.min(hi,s+L);t++){if(nd[t-1]===0||cov[t-1]>=nd[t-1])break;if(t>36&&t!==c&&!(t===hi&&hi>=c-2))continue;if(used[e.id].some(r=>s<r[1]+2&&r[0]<t+2))continue;let g=0,hb=0;for(let x=s;x<t;x++){if(cov[x]<nd[x])g++;hb+=(HH[x]||0)*12}if(!g)continue;
      const sc=g*50-(t-s-g)*60+(a.st==='p'?15:0)-weekly[e.id]*2-(used[e.id].length?10:0)+hb;if(!best||sc>best.sc)best={sc,e,s,t}}}});
    if(!best)break;let {e,s,t}=best;const a=avOf(e.id,d),lo=Math.max(o,Math.ceil(tm(a.s)/30)),hi=Math.min(c,Math.floor(tm(a.e)/30));
-   while(t-s<4){const ok=(a2,b2)=>!used[e.id].some(r=>a2<r[1]&&r[0]<b2);if(t<hi&&nd[t]>0&&ok(s,t+1)&&(t+1<=36||t+1===c))t++;else if(s>lo&&nd[s-1]>0&&ok(s-1,t)&&(s-1<36||s-1===36||s-1===38))s--;else break}
+   while(t-s<4){const ok=(a2,b2)=>!used[e.id].some(r=>a2<r[1]&&r[0]<b2);if(t<hi&&nd[t]>0&&cov[t]<nd[t]&&ok(s,t+1)&&(t+1<=36||t+1===c))t++;else if(s>lo&&nd[s-1]>0&&cov[s-1]<nd[s-1]&&ok(s-1,t)&&(s-1<36||s-1===36||s-1===38))s--;else break}
    for(let x=s;x<t;x++)cov[x]++;used[e.id].push([s,t]);weekly[e.id]+=(t-s)/2;
    D.assignments.push({id:'a'+Math.random(),emp:e.id,date:d,s:T(s),e:T(t),start:toUTC(d,T(s)),end:toUTC(d,T(t)),source:'ai'})}});
  audit('schedule',w,null,{ai:true},'AI 초안 생성');sched(w).status='draft';save();render();
@@ -361,23 +368,24 @@ function payStaff(w){const id=me.id,p=payWeek(id,w),ym=w.slice(0,7),mm=payMonth(
 const iniOf=e=>{const l=D.employees.filter(x=>x.active&&x.role!=='owner');return l.filter(x=>x.name[0]===e.name[0]).length>1?e.name[1]||e.name[0]:e.name[0]};
 function vcol(ev,d){const r=ev.currentTarget.getBoundingClientRect(),S=D.store.settings,o=tm(S.open),c=tm(S.close),m=Math.min(c-60,o+Math.floor((ev.clientY-r.top)/r.height*(c-o)/30)*30),e=Math.min(c,m+240),T=x=>pad(x/60|0)+':'+pad(x%60);
  const i=Math.min(5,Math.max(0,Math.floor((ev.clientX-r.left-14)/((r.width-17)/6)))),emps=D.employees.filter(x=>x.active&&x.role!=='owner');pick(d,emps[i]?emps[i].id:null,T(m),T(e))}
-function calVert(w,edit){const S=D.store.settings,o=tm(S.open),c=tm(S.close),days=weekDays(w),td=ymd(new Date()),gl=gapList(w),y=m=>(m-o)/(c-o)*100,HT=620;
+function calVert(w,edit){const S=D.store.settings,o=tm(S.open),c=tm(S.close),days=weekDays(w),td=ymd(new Date()),gl=gapList(w),ol=overList(w),y=m=>(m-o)/(c-o)*100,HT=620;
  const emps=D.employees.filter(e=>e.active&&e.role!=='owner'),hrs=[];for(let v=Math.ceil(o/60);v*60<=c;v++)hrs.push(v);
  const tot={};emps.forEach(e=>tot[e.id]=D.assignments.filter(a=>a.emp===e.id&&days.includes(a.date)).reduce((s,a)=>s+hours(a),0));
  const leg='<div class="legend">'+emps.map(e=>'<button class="lgb '+(hl===e.id?'on':'')+'" style="border-color:'+e.color+';'+(hl===e.id?'background:'+e.color+';color:#fff':'')+'" onclick="hlSet(\''+e.id+'\')"><i class="ini" style="background:'+e.color+'">'+iniOf(e)+'</i>'+e.name+' <b>'+(tot[e.id]||0)+'h</b>'+(tot[e.id]>=15?'<small>주휴</small>':'')+'</button>').join('')+'</div>';
- let hd='<div class="vh"><div class="gu0"></div>'+days.map(d=>'<div class="'+(isWE(d)?'we ':'')+(d===td?'td':'')+'" onclick="dayOpen=\''+d+'\';render()"><small>'+DOW[new Date(d+'T00:00:00Z').getUTCDay()]+'</small><b>'+ +d.slice(8)+'</b>'+(edit?(()=>{const g=gl.filter(x=>x.startsWith(fmtD(d)));return g.length?'<span class="pill r">부족</span><small class="gt">'+g[0].split(' ')[1].replace(/:00/g,'').replace('~','~\u200b')+(g.length>1?' 외 '+(g.length-1):'')+'</small>':'<span class="pill g">충족</span>'})():'')+'</div>').join('')+'</div>';
+ let hd='<div class="vh"><div class="gu0"></div>'+days.map(d=>'<div class="'+(isWE(d)?'we ':'')+(d===td?'td':'')+'" onclick="dayOpen=\''+d+'\';render()"><small>'+DOW[new Date(d+'T00:00:00Z').getUTCDay()]+'</small><b>'+ +d.slice(8)+'</b>'+(edit?(()=>{const g=gl.filter(x=>x.startsWith(fmtD(d)));const ov=overList(w).some(x=>x.startsWith(fmtD(d)));if(!g.length&&ov)return'<span class="pill o">초과</span>';return g.length?'<span class="pill r">부족</span><small class="gt">'+g[0].split(' ')[1].replace(/:00/g,'').replace('~','~\u200b')+(g.length>1?' 외 '+(g.length-1):'')+'</small>':'<span class="pill g">충족</span>'})():'')+'</div>').join('')+'</div>';
  let bd='<div class="vb" style="height:'+HT+'px"><div class="gu">'+hrs.map(v=>'<span style="top:'+y(v*60)+'%">'+v+'</span>').join('')+'</div>';
  days.forEach(d=>{let cv='';for(let m=o;m<c;m+=30){const n=needAt(d,m),k=cntAt(d,m);cv+='<i class="'+(n===0?'zz':k<n?'lo':'ok')+'"></i>'}
   const packed=innerWidth<640;const mk=(a,e,l,n)=>{const dim=hl&&hl!==e.id;return'<div class="bv '+(a.source==='ai'?'ai':'')+'" style="top:'+y(tm(a.s))+'%;height:'+(y(tm(a.e))-y(tm(a.s)))+'%;background:'+e.color+';'+(packed?'left:'+(l*100/n)+'%;width:calc('+(100/n)+'% - 2px);right:auto;':'')+(dim?'opacity:.25':'')+'"'+(edit?' onclick="event.stopPropagation();pick(\''+d+'\',\''+a.emp+'\')"':'')+'><b>'+iniOf(e)+'</b></div>'};
   const lsP=packed?layout(D.assignments.filter(a=>a.date===d)).map(x=>mk(x.a,emp(x.a.emp),x.l,x.n)).join(''):'';
   const ls=packed?'<div class="lv" style="flex:1">'+(edit&&hl?(()=>{const v=avOf(hl,d);return v&&v.st!=='n'?'<div class="vav '+v.st+'" style="top:'+y(Math.max(o,tm(v.s)))+'%;height:'+(y(Math.min(c,tm(v.e)))-y(Math.max(o,tm(v.s))))+'%"></div>':(v?'<div class="vav n"></div>':'')})():'')+lsP+'</div>':emps.map(e=>{const dim=hl&&hl!==e.id;let av='';if(edit&&hl===e.id){const v=avOf(e.id,d);if(v&&v.st!=='n')av='<div class="vav '+v.st+'" style="top:'+y(Math.max(o,tm(v.s)))+'%;height:'+(y(Math.min(c,tm(v.e)))-y(Math.max(o,tm(v.s))))+'%"></div>';else if(v)av='<div class="vav n"></div>'}
    return'<div class="lv">'+av+slotsOf(d,e.id).map(a=>'<div class="bv '+(a.source==='ai'?'ai':'')+'" style="top:'+y(tm(a.s))+'%;height:'+(y(tm(a.e))-y(tm(a.s)))+'%;background:'+e.color+';'+(dim?'opacity:.25':'')+'"'+(edit?' onclick="event.stopPropagation();pick(\''+d+'\',\''+e.id+'\')"':'')+'><b>'+iniOf(e)+'</b></div>').join('')+'</div>'}).join('');
+  const oov=edit?runs(d,m=>{const k=cntAt(d,m)-needAt(d,m);return needAt(d,m)>0&&k>0?k:false}).map(r=>'<div class="vgap vover" style="top:'+y(r[0])+'%;height:'+(y(r[1])-y(r[0]))+'%"><small>'+r[2]+'명<br>초과</small></div>').join(''):'';
   const gov=edit?runs(d,m=>{const k=needAt(d,m)-cntAt(d,m);return k>0?k:false}).map(r=>'<div class="vgap" style="top:'+y(r[0])+'%;height:'+(y(r[1])-y(r[0]))+'%"><small>'+r[2]+'명<br>부족</small></div>').join(''):'';
-  bd+='<div class="vc '+(d===td?'tdc':'')+(isWE(d)?' wec':'')+'" '+(edit?'onclick="vcol(event,\''+d+'\')"':'')+'>'+hrs.map(v=>'<div class="hl" style="top:'+y(v*60)+'%"></div>').join('')+'<div class="cvv">'+cv+'</div>'+gov+'<div class="ls">'+ls+'</div></div>'});
+  bd+='<div class="vc '+(d===td?'tdc':'')+(isWE(d)?' wec':'')+'" '+(edit?'onclick="vcol(event,\''+d+'\')"':'')+'>'+hrs.map(v=>'<div class="hl" style="top:'+y(v*60)+'%"></div>').join('')+'<div class="cvv">'+cv+'</div>'+gov+oov+'<div class="ls">'+ls+'</div></div>'});
  bd+='</div>';
  return leg+'<div class="row" style="margin:0 0 8px"><span class="m">'+(edit?'색 막대를 누르면 수정, 빈 곳을 누르면 추가, 요일을 누르면 그날 상세':'요일을 누르면 그날 상세')+'</span><span>'+(edit?'<button class="s sm" onclick="showAv=!showAv;if(showAv&&!hl)hl=emps[0].id;render()">'+(showAv?'✓ ':'')+'가능 시간</button> ':'')+'<button class="s sm" onclick="wkTable=true;render()">표로 보기</button></span></div><div class="vwrap">'+hd+bd+'</div>'+
   '<div class="lg2"><span><i class="ok"></i>왼쪽 띠: 충족</span><span><i class="lo"></i>부족</span><span><i class="zz"></i>근무 불필요('+S.bands.filter(b=>b.n===0).map(b=>b.s+'~'+b.e).join(', ')+')</span>'+(edit?'<span>점선 = AI 배정</span>':'')+'</div>'+
-  (edit?'<h3>'+(gl.length?'인원 부족 '+gl.length+'곳':'필요 인원 충족')+'</h3>'+(gl.length?'<div class="m">'+gl.join('<br>')+'</div>':''):'')}
+  (edit?'<h3>'+(gl.length?'인원 부족 '+gl.length+'곳':'필요 인원 충족')+'</h3>'+(gl.length?'<div class="m">'+gl.join('<br>')+'</div>':'')+(ol.length?'<h3 style="color:#d97706">인원 초과 '+ol.length+'곳</h3><div class="m">'+ol.join('<br>')+'</div>':''):'')}
 
 function avToggle(edit){return edit?'<button class="s sm" onclick="showAv=!showAv;render()">'+(showAv?'✓ ':'')+'가능 시간 보기</button>':''}
 function calAB(w,edit){const S=D.store.settings,o=tm(S.open),c=tm(S.close),days=weekDays(w),td=ymd(new Date()),gl=gapList(w);
